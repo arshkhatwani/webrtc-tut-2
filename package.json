@@ -1,0 +1,21 @@
+{
+  "name": "webrtc-tut-2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx tsx watch index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/ws": "^8.5.12",
+    "tsx": "^4.16.5",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
