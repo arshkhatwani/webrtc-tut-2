@@ -13,6 +13,21 @@ function App() {
         setPC(pc);
     }, []);
 
+    useEffect(() => {
+        if (!pc || !socket || !meetingId) return;
+
+        pc.onicecandidate = (event) => {
+          console.log('ice candidate')
+            socket.send(
+                JSON.stringify({
+                    type: "iceCandidate",
+                    meetingId,
+                    iceCandidate: event.candidate,
+                })
+            );
+        };
+    }, [meetingId]);
+
     const createMeeting = async () => {
         if (!socket || !pc) return;
 
