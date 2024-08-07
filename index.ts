@@ -30,6 +30,24 @@ server.on("connection", (socket) => {
                     success: true,
                 })
             );
+        } else if (message.type === "getOffer") {
+            const { meetingId } = message;
+            let meetingDetails = meetings.get(meetingId);
+
+            if (!meetingDetails) {
+                socket.send(
+                    JSON.stringify({
+                        message:
+                            "Invalid meeting id, could not find meeting details",
+                        success: false,
+                    })
+                );
+                return;
+            }
+
+            const { offer } = meetingDetails;
+
+            socket.send(JSON.stringify({ type: "createOffer", offer }));
         } else if (message.type === "createAnswer") {
             console.log("Answer recieved");
 
