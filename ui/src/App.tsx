@@ -25,7 +25,8 @@ function App() {
             if (message.type === "offerCreated") {
                 setMeetingId(message.meetingId);
             } else if (message.type === "createAnswer") {
-                console.log(message);
+                const answer = message.answer;
+                await pc.setRemoteDescription(answer);
             } else if (message.type === "iceCandidate") {
                 console.log("ice candidate");
             }
