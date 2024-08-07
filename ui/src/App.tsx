@@ -31,7 +31,7 @@ function App() {
             }
         };
 
-        socket.send(JSON.stringify({ type: "createOffer", sdp: offer }));
+        socket.send(JSON.stringify({ type: "createOffer", offer }));
     };
 
     const joinMeeting = async () => {
@@ -49,7 +49,7 @@ function App() {
                     JSON.stringify({
                         type: "createAnswer",
                         meetingId,
-                        sdp: answer,
+                        answer,
                     })
                 );
             } else if (message.type === "iceCandidate") {
@@ -71,7 +71,7 @@ function App() {
                 <input
                     type="text"
                     value={meetingId}
-                    onChange={(e) => setMeetingId(e.target.value)}
+                    onChange={(e) => setMeetingId(e.target.value.trim())}
                 />
                 <button onClick={joinMeeting}>Join Meeting</button>
             </div>

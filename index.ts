@@ -19,7 +19,7 @@ server.on("connection", (socket) => {
             console.log("Offer received");
 
             const meetingId = uid.rnd();
-            const offer = message.sdp;
+            const { offer } = message;
 
             meetings.set(meetingId, { sender: socket, offer: offer });
 
@@ -51,7 +51,7 @@ server.on("connection", (socket) => {
         } else if (message.type === "createAnswer") {
             console.log("Answer recieved");
 
-            const { meetingId, sdp } = message;
+            const { meetingId, answer } = message;
             let meetingDetails = meetings.get(meetingId);
 
             if (!meetingDetails) {
@@ -68,7 +68,7 @@ server.on("connection", (socket) => {
             const { sender, offer } = meetingDetails;
             meetings.set(meetingId, {
                 ...meetingDetails,
-                answer: sdp,
+                answer,
                 receiver: socket,
             });
 
@@ -82,7 +82,7 @@ server.on("connection", (socket) => {
                 return;
             }
 
-            sender.send(JSON.stringify({ answer: sdp, type: "createAnswer" }));
+            sender.send(JSON.stringify({ answer, type: "createAnswer" }));
             socket.send(
                 JSON.stringify({ type: "answerCreated", offer, success: true })
             );
