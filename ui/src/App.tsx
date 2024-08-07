@@ -34,11 +34,48 @@ function App() {
         socket.send(JSON.stringify({ type: "createOffer", sdp: offer }));
     };
 
+    const joinMeeting = async () => {
+        if (!socket || !pc || !meetingId) return;
+
+        socket.onmessage = async (event) => {
+            const message = JSON.parse(event.data);
+
+            if (message.type === "createOffer") {
+                const offer = message.offer;
+                await pc.setRemoteDescription(offer);
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                socket.send(
+                    JSON.stringify({
+                        type: "createAnswer",
+                        meetingId,
+                        sdp: answer,
+                    })
+                );
+            } else if (message.type === "iceCandidate") {
+                console.log("ice candidate");
+            }
+        };
+
+        socket.send(JSON.stringify({ type: "getOffer", meetingId }));
+    };
+
     return (
-        <>
-            <button onClick={createMeeting}>Create Meeting</button>
-            {meetingId && <p>Your meeting id is {meetingId}</p>}
-        </>
+        <div>
+            <div className="mb-4">
+                <button onClick={createMeeting}>Create Meeting</button>
+                {meetingId && <p>Your meeting id is {meetingId}</p>}
+            </div>
+
+            <div className="flex flex-row gap-2">
+                <input
+                    type="text"
+                    value={meetingId}
+                    onChange={(e) => setMeetingId(e.target.value)}
+                />
+                <button onClick={joinMeeting}>Join Meeting</button>
+            </div>
+        </div>
     );
 }
 
