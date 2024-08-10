@@ -14,19 +14,32 @@ function App() {
     }, []);
 
     useEffect(() => {
-        if (!pc || !socket || !meetingId) return;
+      if (!pc || !socket || !meetingId) return;
 
-        pc.onicecandidate = (event) => {
-          console.log('ice candidate')
-            socket.send(
-                JSON.stringify({
-                    type: "iceCandidate",
-                    meetingId,
-                    iceCandidate: event.candidate,
-                })
-            );
-        };
-    }, [meetingId]);
+      pc.onicecandidate = (event) => {
+        console.log('ice candidate')
+          socket.send(
+              JSON.stringify({
+                  type: "iceCandidate",
+                  meetingId,
+                  iceCandidate: event.candidate,
+              })
+          );
+      };
+  }, [meetingId]);
+
+    const getCameraStreamAndSend = (pc: RTCPeerConnection) => {
+        navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+            const video = document.createElement("video");
+            video.srcObject = stream;
+            video.play();
+
+            document.getElementById("own-video")?.appendChild(video);
+            stream.getTracks().forEach((track) => {
+                pc.addTrack(track);
+            });
+        });
+    };
 
     const createMeeting = async () => {
         if (!socket || !pc) return;
@@ -40,6 +53,7 @@ function App() {
             if (message.type === "offerCreated") {
                 setMeetingId(message.meetingId);
             } else if (message.type === "createAnswer") {
+                console.log(message.answer)
                 const answer = message.answer;
                 await pc.setRemoteDescription(answer);
             } else if (message.type === "iceCandidate") {
@@ -47,7 +61,17 @@ function App() {
             }
         };
 
+        pc.onnegotiationneeded = async () => {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            socket.send(
+                JSON.stringify({ type: "negotationOffer", offer, meetingId })
+            );
+        };
+
         socket.send(JSON.stringify({ type: "createOffer", offer }));
+
+        getCameraStreamAndSend(pc);
     };
 
     const joinMeeting = async () => {
@@ -74,6 +98,10 @@ function App() {
         };
 
         socket.send(JSON.stringify({ type: "getOffer", meetingId }));
+
+        pc.ontrack = (event) => {
+            console.log(event);
+        };
     };
 
     return (
@@ -90,6 +118,11 @@ function App() {
                     onChange={(e) => setMeetingId(e.target.value.trim())}
                 />
                 <button onClick={joinMeeting}>Join Meeting</button>
+            </div>
+
+            <div>
+                <div id="own-video"></div>
+                <div id="received-video"></div>
             </div>
         </div>
     );

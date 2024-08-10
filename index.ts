@@ -30,6 +30,27 @@ server.on("connection", (socket) => {
                     success: true,
                 })
             );
+        } else if ((message.type = "negotationOffer")) {
+            const { meetingId, offer } = message;
+            const meetingDetails = meetings.get(meetingId);
+
+            if (!meetingDetails) {
+                socket.send(
+                    JSON.stringify({
+                        message:
+                            "Invalid meeting id, could not find meeting details",
+                        success: false,
+                    })
+                );
+                return;
+            }
+
+            const { receiver } = meetingDetails;
+
+            meetings.set(meetingId, { ...meetingDetails, offer });
+            receiver?.send(JSON.stringify({ type: "createOffer", offer }));
+
+            console.log("Negotation Offer sent");
         } else if (message.type === "getOffer") {
             const { meetingId } = message;
             let meetingDetails = meetings.get(meetingId);
