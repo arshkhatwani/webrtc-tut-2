@@ -125,6 +125,11 @@ function App() {
         socket.send(JSON.stringify({ type: "getOffer", meetingId }));
         pc.ontrack = (event) => {
             console.log(event);
+            const video = document.createElement("video");
+            document.getElementById("received-video")?.appendChild(video);
+            video.srcObject = new MediaStream([event.track]);
+            video.muted = true;
+            video.play();
         };
     };
 
