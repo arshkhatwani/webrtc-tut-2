@@ -13,20 +13,21 @@ function App() {
         setPC(pc);
     }, []);
 
-    useEffect(() => {
-        if (!pc || !socket || !meetingId) return;
+    // useEffect(() => {
+    //     if (!pc || !socket || !meetingId) return;
 
-        pc.onicecandidate = (event) => {
-            console.log("ice candidate");
-            socket.send(
-                JSON.stringify({
-                    type: "iceCandidate",
-                    meetingId,
-                    iceCandidate: event.candidate,
-                })
-            );
-        };
-    }, [meetingId, pc, socket]);
+    //     pc.onicecandidate = (event) => {
+    //         if (!event.candidate) return;
+    //         console.log("ice candidate");
+    //         socket.send(
+    //             JSON.stringify({
+    //                 type: "iceCandidate",
+    //                 meetingId,
+    //                 iceCandidate: event.candidate,
+    //             })
+    //         );
+    //     };
+    // }, [meetingId, pc, socket]);
 
     const getCameraStreamAndSend = (pc: RTCPeerConnection) => {
         navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
@@ -52,6 +53,18 @@ function App() {
 
             if (message.type === "offerCreated") {
                 setMeetingId(message.meetingId);
+
+                pc.onicecandidate = (event) => {
+                    if (!event.candidate) return;
+                    console.log("ice candidate");
+                    socket.send(
+                        JSON.stringify({
+                            type: "iceCandidate",
+                            meetingId: message.meetingId,
+                            iceCandidate: event.candidate,
+                        })
+                    );
+                };
             } else if (message.type === "createAnswer") {
                 console.log(message.answer);
                 const answer = message.answer;
@@ -99,8 +112,8 @@ function App() {
                 message.type === "iceCandidate" &&
                 message.iceCandidate
             ) {
-                console.log("Received ice candidate");
-                await pc.addIceCandidate(message.iceCandidate);
+                if (pc.remoteDescription)
+                    await pc.addIceCandidate(message.iceCandidate);
             }
         };
 
