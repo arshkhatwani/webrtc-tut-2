@@ -27,6 +27,19 @@ function App() {
             } else if (message.type === "createAnswer") {
                 const answer = message.answer;
                 await pc.setRemoteDescription(answer);
+
+                pc.onicecandidate = (event) => {
+                    console.log("ice candidate");
+                    socket.send(
+                        JSON.stringify({
+                            type: "iceCandidate",
+                            meetingId,
+                            iceCandidate: event.candidate,
+                        })
+                    );
+                };
+
+                console.log(answer);
             } else if (message.type === "iceCandidate") {
                 console.log("ice candidate");
             }
@@ -53,6 +66,17 @@ function App() {
                         answer,
                     })
                 );
+
+                pc.onicecandidate = (event) => {
+                    console.log("ice candidate");
+                    socket.send(
+                        JSON.stringify({
+                            type: "iceCandidate",
+                            meetingId,
+                            iceCandidate: event.candidate,
+                        })
+                    );
+                };
             } else if (message.type === "iceCandidate") {
                 console.log("ice candidate");
             }
