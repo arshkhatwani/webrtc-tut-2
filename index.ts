@@ -30,7 +30,7 @@ server.on("connection", (socket) => {
                     success: true,
                 })
             );
-        } else if ((message.type = "negotationOffer")) {
+        } else if (message.type === "negotationOffer") {
             const { meetingId, offer } = message;
             const meetingDetails = meetings.get(meetingId);
 
@@ -108,9 +108,11 @@ server.on("connection", (socket) => {
                 JSON.stringify({ type: "answerCreated", offer, success: true })
             );
         } else if (message.type === "iceCandidate") {
-            console.log("Ice candidate received");
-            // fetch the value from hashmap verify whether the socket is receiver or sender and share the ice candidates accordingly
+            console.log("Ice candidate received", message);
+
             const { meetingId, iceCandidate } = message;
+            if (!iceCandidate) return;
+
             const meetingDetails = meetings.get(meetingId);
 
             if (!meetingDetails) {
@@ -130,10 +132,12 @@ server.on("connection", (socket) => {
                 receiver.send(
                     JSON.stringify({ type: "iceCandidate", iceCandidate })
                 );
+                console.log("Sent ice candidate to receiver");
             } else if (sender && socket === receiver) {
                 sender.send(
                     JSON.stringify({ type: "iceCandidate", iceCandidate })
                 );
+                console.log("Sent ice candidate to sender");
             }
         }
     });
