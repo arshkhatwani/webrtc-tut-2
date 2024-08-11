@@ -65,6 +65,19 @@ function App() {
                         })
                     );
                 };
+
+                pc.onnegotiationneeded = async () => {
+                    console.log("negotation neeeded");
+                    const offer = await pc.createOffer();
+                    await pc.setLocalDescription(offer);
+                    socket.send(
+                        JSON.stringify({
+                            type: "negotationOffer",
+                            offer,
+                            meetingId: message.meetingId,
+                        })
+                    );
+                };
             } else if (message.type === "createAnswer") {
                 console.log(message.answer);
                 const answer = message.answer;
@@ -75,14 +88,6 @@ function App() {
             ) {
                 await pc.addIceCandidate(message.iceCandidate);
             }
-        };
-
-        pc.onnegotiationneeded = async () => {
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            socket.send(
-                JSON.stringify({ type: "negotationOffer", offer, meetingId })
-            );
         };
 
         socket.send(JSON.stringify({ type: "createOffer", offer }));
