@@ -13,22 +13,6 @@ function App() {
         setPC(pc);
     }, []);
 
-    // useEffect(() => {
-    //     if (!pc || !socket || !meetingId) return;
-
-    //     pc.onicecandidate = (event) => {
-    //         if (!event.candidate) return;
-    //         console.log("ice candidate");
-    //         socket.send(
-    //             JSON.stringify({
-    //                 type: "iceCandidate",
-    //                 meetingId,
-    //                 iceCandidate: event.candidate,
-    //             })
-    //         );
-    //     };
-    // }, [meetingId, pc, socket]);
-
     const getCameraStreamAndSend = (pc: RTCPeerConnection) => {
         navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
             const video = document.createElement("video");
