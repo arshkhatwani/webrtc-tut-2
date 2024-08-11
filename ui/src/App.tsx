@@ -14,19 +14,19 @@ function App() {
     }, []);
 
     useEffect(() => {
-      if (!pc || !socket || !meetingId) return;
+        if (!pc || !socket || !meetingId) return;
 
-      pc.onicecandidate = (event) => {
-        console.log('ice candidate')
-          socket.send(
-              JSON.stringify({
-                  type: "iceCandidate",
-                  meetingId,
-                  iceCandidate: event.candidate,
-              })
-          );
-      };
-  }, [meetingId]);
+        pc.onicecandidate = (event) => {
+            console.log("ice candidate");
+            socket.send(
+                JSON.stringify({
+                    type: "iceCandidate",
+                    meetingId,
+                    iceCandidate: event.candidate,
+                })
+            );
+        };
+    }, [meetingId, pc, socket]);
 
     const getCameraStreamAndSend = (pc: RTCPeerConnection) => {
         navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
@@ -53,11 +53,14 @@ function App() {
             if (message.type === "offerCreated") {
                 setMeetingId(message.meetingId);
             } else if (message.type === "createAnswer") {
-                console.log(message.answer)
+                console.log(message.answer);
                 const answer = message.answer;
                 await pc.setRemoteDescription(answer);
-            } else if (message.type === "iceCandidate") {
-                console.log("ice candidate");
+            } else if (
+                message.type === "iceCandidate" &&
+                message.iceCandidate
+            ) {
+                await pc.addIceCandidate(message.iceCandidate);
             }
         };
 
@@ -92,13 +95,16 @@ function App() {
                         answer,
                     })
                 );
-            } else if (message.type === "iceCandidate") {
-                console.log("ice candidate");
+            } else if (
+                message.type === "iceCandidate" &&
+                message.iceCandidate
+            ) {
+                console.log("Received ice candidate");
+                await pc.addIceCandidate(message.iceCandidate);
             }
         };
 
         socket.send(JSON.stringify({ type: "getOffer", meetingId }));
-
         pc.ontrack = (event) => {
             console.log(event);
         };
