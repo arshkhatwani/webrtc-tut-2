@@ -116,6 +116,7 @@ server.on("connection", (socket) => {
             const meetingDetails = meetings.get(meetingId);
 
             if (!meetingDetails) {
+                console.log("Could not send ice candidate");
                 socket.send(
                     JSON.stringify({
                         message:

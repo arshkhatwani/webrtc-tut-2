@@ -21,6 +21,7 @@ function App() {
 
             document.getElementById("own-video")?.appendChild(video);
             stream.getTracks().forEach((track) => {
+                console.log("Sending track:", track);
                 pc.addTrack(track);
             });
         });
@@ -46,6 +47,7 @@ function App() {
                             type: "iceCandidate",
                             meetingId: message.meetingId,
                             iceCandidate: event.candidate,
+                            from: "sender",
                         })
                     );
                 };
@@ -63,20 +65,30 @@ function App() {
                     );
                 };
             } else if (message.type === "createAnswer") {
-                console.log(message.answer);
+                console.log("Received answer", message.answer);
                 const answer = message.answer;
                 await pc.setRemoteDescription(answer);
             } else if (
                 message.type === "iceCandidate" &&
                 message.iceCandidate
             ) {
-                await pc.addIceCandidate(message.iceCandidate);
+                if (pc.remoteDescription)
+                    await pc.addIceCandidate(message.iceCandidate);
             }
         };
 
         socket.send(JSON.stringify({ type: "createOffer", offer }));
 
         getCameraStreamAndSend(pc);
+
+        pc.ontrack = (event) => {
+            console.log(event);
+            const video = document.createElement("video");
+            document.getElementById("received-video")?.appendChild(video);
+            video.srcObject = new MediaStream([event.track]);
+            video.muted = true;
+            video.play();
+        };
     };
 
     const joinMeeting = async () => {
@@ -97,6 +109,19 @@ function App() {
                         answer,
                     })
                 );
+
+                pc.onicecandidate = (event) => {
+                    if (!event.candidate) return;
+                    console.log("ice candidate");
+                    socket.send(
+                        JSON.stringify({
+                            type: "iceCandidate",
+                            meetingId,
+                            iceCandidate: event.candidate,
+                            from: "receiver",
+                        })
+                    );
+                };
             } else if (
                 message.type === "iceCandidate" &&
                 message.iceCandidate
@@ -115,6 +140,8 @@ function App() {
             video.muted = true;
             video.play();
         };
+
+        getCameraStreamAndSend(pc);
     };
 
     return (
@@ -133,9 +160,13 @@ function App() {
                 <button onClick={joinMeeting}>Join Meeting</button>
             </div>
 
-            <div>
-                <div id="own-video"></div>
-                <div id="received-video"></div>
+            <div className="flex flex-row justify-between gap-2">
+                <div id="own-video">
+                    <h1 className="text-2xl">Your video</h1>
+                </div>
+                <div id="received-video">
+                    <h1 className="text-2xl">Received video</h1>
+                </div>
             </div>
         </div>
     );
